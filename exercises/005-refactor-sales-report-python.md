@@ -142,7 +142,15 @@ class TestFormatting(unittest.TestCase):
 
 1. `sales_report_original.py` is unchanged (the file on disk at the end of the session must be byte-for-byte identical to what it was at the start)
 2. `sales_report.py`, `cli.py`, and `test_sales_report.py` exist
-3. `python -m unittest sales-report/test_sales_report.py -v ; echo TEST_DONE` exits 0 with all tests passing (apply the `sys.path` trick so tests run from workspace root)
+3. `python -m unittest sales-report/test_sales_report.py -v ; echo TEST_DONE` exits 0 with all tests passing. **Put these exact four lines at the top of `test_sales_report.py` before any other imports, so the test module can find `sales_report.py` when run from the workspace root:**
+
+   ```python
+   import sys
+   import os
+   sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+   ```
+
+   This is required because `python -m unittest path/to/test.py` does not automatically add `path/to/` to `sys.path` — without these lines, the import of `sales_report` will fail with `ModuleNotFoundError` when run from workspace root.
 4. `python sales-report/cli.py sales-report/sample_sales.csv ; echo DEMO_DONE` produces the expected output above exactly, byte-for-byte
 5. `sales_report.py` (pure core) contains no `print`, no `open`, no `input`, no `sys.*`, no `argparse.*`, no module-level side effects
 6. `cli.py` (boundary) is free to use `open`, `print`, `sys.argv`, etc.

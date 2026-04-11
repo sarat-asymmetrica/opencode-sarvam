@@ -161,7 +161,13 @@ The `test_clock_injection_produces_deterministic_history` test exercises the opt
 
 ## Definition of done
 
-1. `python -m unittest order-state-machine/test_order.py -v ; echo TEST_DONE` exits 0 with all tests passing (use the `sys.path` trick from Exercise 002 so tests run from workspace root)
+1. `python -m unittest order-state-machine/test_order.py -v ; echo TEST_DONE` exits 0 with all tests passing. **Put these exact four lines at the top of `test_order.py` before any other imports, so the test module can find `order.py` when run from the workspace root:**
+
+   ```python
+   import sys
+   import os
+   sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+   ```
 2. `python -c "..."` demo:
    ```
    python -c "import sys; sys.path.insert(0, 'order-state-machine'); from order import Order, OrderState; o = Order('ORD-001', 5000); o.pay(); o.ship(); o.deliver(); print(o.state().value, o.refund_cents())" ; echo DEMO_DONE

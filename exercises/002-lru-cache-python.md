@@ -118,7 +118,13 @@ Add more tests if they buy you something — minimality applies to tests too. Do
 
 ## Definition of done
 
-1. `python -m unittest lru-cache/test_lru_cache.py -v ; echo TEST_DONE` exits 0 with all tests passing
+1. `python -m unittest lru-cache/test_lru_cache.py -v ; echo TEST_DONE` exits 0 with all tests passing. **Put these exact four lines at the top of `test_lru_cache.py` before any other imports, so the test module can find `lru_cache.py` when run from the workspace root:**
+
+   ```python
+   import sys
+   import os
+   sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+   ```
 2. `python -c "import sys; sys.path.insert(0, 'lru-cache'); from lru_cache import LRUCache; c = LRUCache(2); c.put('a', 1); c.put('b', 2); c.get('a'); c.put('c', 3); print(c.get('a'), c.get('b'), c.get('c'))" ; echo DEMO_DONE` prints `1 None 3`
 3. `lru_cache.py` contains no `print`, no `input`, no `open`, no `os`, no `sys`, no `logging` — pure in-memory data structure
 4. `lru_cache.py` under 40 lines total (including imports, docstrings, and blank lines)
