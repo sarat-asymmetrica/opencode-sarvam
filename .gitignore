@@ -1,0 +1,41 @@
+# Secrets / environment
+.env
+.env.local
+*.secret
+
+# Node / JavaScript
+node_modules/
+package-lock.json
+.npm/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# OpenCode local state
+.opencode/logs/
+.opencode/cache/
+.opencode/state/
+*.log
+
+# IDE / editor noise
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.exe
+*.o
+*.out
+
+# Language-specific build artifacts from exercise runs
+dr-classify/dr-classify.exe
+dr-classify/*.test

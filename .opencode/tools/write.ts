@@ -1,0 +1,99 @@
+// Custom write tool — replaces opencode's built-in `write` with a version that
+// (1) tells the model exactly how paths work in this environment, via an
+//     extremely explicit schema description, and
+// (2) defensively normalizes bad paths (leading slashes, backslashes) so that
+//     even if a mid-sized model like Sarvam 105B emits "/dr-classify/go.mod" out
+//     of Unix habit, the write still lands in the correct place inside cwd.
+//
+// See: C:/Projects/opencode-sarvam/CLAUDE.md "File path conventions" for the
+// background on why this override exists. TL;DR: on Windows, Node's
+// path.resolve("/foo") returns "C:\\foo" (drive root), not "cwd/foo", and the
+// built-in write tool doesn't tell the model this. Sarvam and similar
+// OpenAI-compatible models then fail in a retry loop that burns turns.
+
+import { tool } from "@opencode-ai/plugin"
+import { writeFile, mkdir } from "node:fs/promises"
+import { dirname, isAbsolute, resolve, relative } from "node:path"
+
+export default tool({
+  description: `Create a new file or overwrite an existing file with the given content. Parent directories are created automatically — do NOT call mkdir separately.
+
+PATH RULES — READ CAREFULLY. Mid-sized OpenAI-compatible models frequently get these wrong by Unix reflex. Getting them right on the first call saves turns.
+
+The filePath parameter MUST be one of:
+
+  (A) A path RELATIVE to the current working directory, with NO leading slash or backslash. This is the preferred form.
+      Correct examples:
+        "dr-classify/go.mod"
+        "dr-classify/main.go"
+        "exercises/001-dr-classify.md"
+        "README.md"
+
+  (B) A FULL absolute Windows path with a drive letter and forward slashes:
+      Correct examples:
+        "C:/Projects/opencode-sarvam/dr-classify/go.mod"
+        "C:/Projects/opencode-sarvam/main.go"
+
+DO NOT use a leading slash to mean "project root". On Windows, a path like "/dr-classify/go.mod" resolves to "C:\\\\dr-classify\\\\go.mod" — the root of the C drive — which is OUTSIDE the allowed working directory. This environment is Windows, not Unix.
+
+  WRONG examples (do not use these forms):
+    "/dr-classify/go.mod"     — leading / = drive root on Windows
+    "\\\\dr-classify\\\\go.mod"   — leading \\\\ = same problem
+    "~/dr-classify/go.mod"    — tilde is not expanded
+    "./dr-classify/go.mod"    — leading ./ is allowed but unnecessary; drop it
+
+This tool will defensively strip a leading slash if you include one (so your write will still succeed), but emitting the correct form the first time is faster and cheaper.`,
+  args: {
+    filePath: tool.schema.string().describe(
+      'Path to the file to write. MUST be either (preferred) a relative path with NO leading slash like "dr-classify/go.mod", or a full absolute Windows path with forward slashes like "C:/Projects/opencode-sarvam/dr-classify/go.mod". NEVER use a leading slash to mean "project root" — on Windows it resolves to the drive root and the path ends up outside the working directory. Parent directories are created automatically; do not call mkdir separately.'
+    ),
+    content: tool.schema.string().describe(
+      "The complete content to write to the file as a UTF-8 string. For a new file this is the entire file. For an overwrite it replaces previous content entirely."
+    ),
+  },
+  async execute(args, context) {
+    let p = (args.filePath ?? "").trim()
+
+    if (p.length === 0) {
+      throw new Error("filePath must not be empty")
+    }
+
+    // Defensive normalization: strip leading slashes (both / and \).
+    // This is the key fix for the leading-slash habit. We do NOT reject —
+    // we recover silently and log what happened, so the model doesn't spin
+    // in a rejection/retry loop. CLAUDE.md + the schema description above
+    // teach the model the right form; this just catches the habit until
+    // the lesson sticks.
+    const originalPath = p
+    while (p.startsWith("/") || p.startsWith("\\")) {
+      p = p.slice(1)
+    }
+
+    // Resolve relative paths against the session's working directory.
+    // Absolute paths (with drive letter like "C:/...") are kept as-is.
+    const cwd = context.directory
+    const abs = isAbsolute(p) ? p : resolve(cwd, p)
+
+    // Security: ensure the resolved absolute path is inside cwd.
+    // If `rel` starts with ".." or is itself absolute (different drive),
+    // the write would escape the workspace — reject explicitly.
+    const rel = relative(cwd, abs)
+    if (rel.startsWith("..") || isAbsolute(rel)) {
+      throw new Error(
+        `Path "${args.filePath}" resolves to "${abs}", which is outside the working directory "${cwd}". ` +
+          `Use a path relative to the working directory (e.g. "dr-classify/go.mod") or a full absolute path inside this directory.`
+      )
+    }
+
+    // Create parent directories as needed, then write.
+    await mkdir(dirname(abs), { recursive: true })
+    await writeFile(abs, args.content, "utf8")
+
+    const bytes = Buffer.byteLength(args.content, "utf8")
+    const notice =
+      originalPath !== p
+        ? ` (normalized from "${originalPath}" — leading slash stripped)`
+        : ""
+    return `Wrote ${rel} (${bytes} bytes)${notice}`
+  },
+})

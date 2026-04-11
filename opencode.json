@@ -1,0 +1,84 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "model": "sarvam/sarvam-105b",
+  "small_model": "sarvam/sarvam-105b",
+  "default_agent": "codemath-lead",
+
+  "provider": {
+    "sarvam": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Sarvam AI",
+      "options": {
+        "baseURL": "https://api.sarvam.ai/v1",
+        "headers": {
+          "api-subscription-key": "{env:SARVAM_API_KEY}"
+        }
+      },
+      "models": {
+        "sarvam-105b": {
+          "name": "Sarvam 105B (128K MoE)",
+          "reasoning": true,
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "sarvam-105b-32k": {
+          "name": "Sarvam 105B 32K (faster fallback)",
+          "reasoning": true,
+          "limit": {
+            "context": 32000,
+            "output": 16384
+          }
+        }
+      }
+    }
+  },
+
+  "agent": {
+    "codemath-lead": {
+      "description": "Primary code-oriented agent operating under CodeMathEngine v2 discipline: Boundary + Inevitability + Locality + Cost + Adversarial self-critique. Testing whether the elegance scaffold holds under multi-turn tool use with compaction pressure.",
+      "mode": "primary",
+      "model": "sarvam/sarvam-105b",
+      "prompt": ".opencode/agents/codemath-lead.md",
+      "temperature": 0.2,
+      "steps": 80,
+      "tools": {
+        "todowrite": false,
+        "todoread": false
+      }
+    }
+  },
+
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "git status": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "ls *": "allow",
+      "cat *": "allow",
+      "wc -l *": "allow",
+      "node --check *": "allow",
+      "python -c *": "allow",
+      "python3 -c *": "allow"
+    },
+    "edit": "allow",
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "webfetch": "ask"
+  },
+
+  "compaction": {
+    "auto": true,
+    "reserved": 12000
+  },
+
+  "watcher": {
+    "ignore": ["node_modules", ".git", "*.log", ".opencode/logs"]
+  },
+
+  "instructions": ["CLAUDE.md"]
+}

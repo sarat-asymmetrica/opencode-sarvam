@@ -1,0 +1,8 @@
+date,category,product,amount
+2026-01-05,books,Rust in Action,39.99
+2026-01-12,electronics,USB-C hub,24.50
+2026-01-18,books,Python Distilled,32.00
+2026-02-03,electronics,"Keyboard, mechanical",89.99
+2026-02-14,books,Crafting Interpreters,42.00
+2026-02-20,clothing,Sweater,55.00
+2026-01-25,clothing,T-shirt,15.99
