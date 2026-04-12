@@ -77,17 +77,76 @@ These carry forward unchanged. v2.3 is purely *additive*.
 > 4. **LLM reasoning**: "Given everything I've gathered, what is the fix?" This is the MOST expensive query and should happen LAST, informed by the results of 1–3.
 >
 > **Anti-pattern**: reasoning-first without querying memory or graph. This is how mid-sized models waste tokens on problems that were already solved in memory or structurally obvious from the graph. If you catch yourself writing a patch without having queried memory or graph at all, STOP and query first. The math buys you nothing if you don't *use* the layers.
+>
+> ---
+>
+> **CONCRETE GUIDANCE — prefer `gitnexus context --content` over `Read` for symbol investigation.**
+>
+> When your goal is to understand a function, class, or method *in its relationship context* (who calls it, who it calls, what class it belongs to, who tests it), **one call to `gitnexus context <symbol> --content`** returns everything in a single structured response:
+>
+> ```json
+> {
+>   "symbol": {
+>     "uid": "Function:sales-report/sales_report.py:parse_sales_rows",
+>     "filePath": "sales-report/sales_report.py",
+>     "startLine": 7, "endLine": 40,
+>     "content": "def parse_sales_rows(csv_content: str) -> ..."
+>   },
+>   "incoming": {
+>     "calls": [
+>       {"name": "test_parses_simple_rows", "filePath": "..."},
+>       {"name": "test_handles_quoted_cells", "filePath": "..."},
+>       ...7 callers total...
+>     ]
+>   },
+>   "outgoing": { ... },
+>   "processes": []
+> }
+> ```
+>
+> **This one query replaces**: 1 Read on the function's file + 6-8 grep/read calls to find each caller + 1 Read on the CLI entry point. *8 tool calls become 1.* That is clause 12 (tool call optimality) at its sharpest.
+>
+> **Use `Read` only when**:
+> - You need the *exact bytes* of a specific file (e.g., the failing test's assertions, a config file's key-value contents, docstring wording)
+> - The file is not code (markdown, YAML, JSON, config)
+> - You already know the structural relationships and just need to confirm an implementation detail
+>
+> **Use `gitnexus context --content` when**:
+> - You need to understand how a symbol fits into its neighborhood
+> - You want to find all callers of a function
+> - You want to see a class and all its methods at once
+> - You are reasoning about an edit's blast radius (combine with `gitnexus impact`)
+>
+> **Rule of thumb**: if you're about to read 3+ files to understand one symbol, replace those reads with one `context --content` call.
 
 ### Clause 20 — Regression safety (the test-suite side effect check)
 
-> **Before emitting a final patch, mentally simulate running the full test suite.** Ask: "What tests exist that exercise the function I just changed? For each, what was the original behavior? Will my change break any of them?"
+> **Before emitting a final patch, run `gitnexus impact <symbol> --include-tests --depth 2` to obtain a categorical risk level.** Interpret the result as follows:
 >
-> **Concrete steps**:
-> 1. After writing the patch, query GitNexus with `gitnexus impact <symbol>` to find the blast radius.
-> 2. For each caller/test revealed, ask: "Does my change preserve the invariant that caller depends on?"
-> 3. If you can't prove the invariant holds, re-scope the patch to be more local (revisit Clause 18).
+> ```json
+> {
+>   "target": {"name": "parse_sales_rows", "type": "Function", ...},
+>   "direction": "upstream",
+>   "impactedCount": 8,
+>   "risk": "MEDIUM",      ← THIS IS THE GATE
+>   "summary": {"direct": 7, "processes_affected": 0, "modules_affected": 1},
+>   "byDepth": {
+>     "1": [
+>       {"name": "test_parses_simple_rows", "relationType": "CALLS", "confidence": 0.9},
+>       ... (7 more depth-1 callers)
+>     ]
+>   }
+> }
+> ```
 >
-> **Why this clause exists**: SWE-bench evaluates on the *full test suite*, not just the originally failing test. A patch that passes the failing test but breaks two previously-passing tests is worse than no patch at all (partial credit is rare). Regression safety is an explicit goal, not an afterthought.
+> **Categorical risk gates**:
+> - `risk == "LOW"` → **proceed**. Patch affects a leaf-like symbol with few dependants.
+> - `risk == "MEDIUM"` → **verify each depth-1 dependant individually before emitting**. For each caller, ask: "Does my change preserve what this caller depends on?" If you cannot prove the invariant holds for even one caller, re-scope the patch smaller (Clause 18).
+> - `risk == "HIGH"` → **re-scope the patch immediately**. Do not emit a patch with HIGH impact risk without first trying to find a more local fix. If no more local fix exists, this is a Clause 21 (give-up) candidate — the problem may not be solvable within your budget.
+>
+> **Confidence scores matter.** When GitNexus reports a dependant with `"confidence": 0.9` rather than 1.0, that means Tree-sitter parsing could not be 100% certain (dynamic dispatch, function references, interface-typed calls). Treat 0.9 as "very likely a real caller, verify manually if this is a breaking change". Treat < 0.7 as "probably a false positive, still worth eyeballing".
+>
+> **Why this clause exists**: SWE-bench evaluates on the *full test suite*, not just the originally failing test. A patch that passes the failing test but breaks two previously-passing tests is worse than no patch at all (partial credit is rare). Regression safety is an explicit goal, not an afterthought. GitNexus's risk computation is the mathematically-principled gate; the agent does not need to guess.
 
 ### Clause 21 — Give up honestly (the graceful exit)
 
