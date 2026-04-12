@@ -47,7 +47,7 @@ class Order:
         self._transition_to(OrderState.PAID)
 
     def ship(self) -> None:
-        if self._state != OrderState.PENDING:
+        if self._state not in [OrderState.PENDING, OrderState.PAID]:
             raise InvalidTransition(f"Cannot ship from state {self._state.value}")
         self._transition_to(OrderState.SHIPPED)
 
@@ -67,13 +67,13 @@ class Order:
             raise InvalidTransition(f"Cannot cancel from state {self._state.value}")
 
     def return_order(self) -> None:
-        if self._state in [OrderState.PENDING, OrderState.PAID, OrderState.CANCELLED, OrderState.SHIPPED]:
+        if self._state in [OrderState.PENDING, OrderState.PAID, OrderState.CANCELLED]:
             raise InvalidTransition(f"Cannot return from state {self._state.value}")
         self._transition_to(OrderState.RETURNED)
 
     def refund_cents(self) -> int:
         if self._state == OrderState.CANCELLED:
-            return self._total_cents if not self._cancelled_from_paid else 0
+            return self._total_cents if self._cancelled_from_paid else 0
         elif self._state == OrderState.RETURNED:
             return self._total_cents
         else:
