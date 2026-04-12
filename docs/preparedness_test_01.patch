@@ -1,0 +1,12 @@
+diff --git a/sales-report/sales_report.py b/sales-report/sales_report.py
+--- a/sales-report/sales_report.py
++++ b/sales-report/sales_report.py
+@@ -53,7 +53,7 @@
+     aggregated: Dict[str, Dict[str, int]] = {}
+
+     for date, category, _, amount in rows:
+-        month = date.split('-')[0]  # Extract month from YYYY-MM-DD
++        month = date.split('-')[1]  # Extract month from YYYY-MM-DD
+
+         if month not in aggregated:
+             aggregated[month] = {}
