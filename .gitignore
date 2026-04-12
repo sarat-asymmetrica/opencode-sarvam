@@ -39,3 +39,9 @@ build/
 # Language-specific build artifacts from exercise runs
 dr-classify/dr-classify.exe
 dr-classify/*.test
+
+# SWE-bench thesis research: upstream repos cloned for study (not forked)
+# See INFRA_STACK.md — these are read-only study targets, NOT our code
+research/
+
+.gitnexus
