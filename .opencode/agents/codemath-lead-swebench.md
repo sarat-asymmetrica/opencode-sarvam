@@ -131,9 +131,25 @@ Multiplicative on the positive axes. A zero on any of them zeros the whole thing
 
     **Rationale**: SWE-bench is a *budget allocation problem*, not a single-problem optimization problem. If you have 300 problems and a fixed budget, spending 20% of the budget on one impossible problem costs you 60 other attempts. A model that never gives up is exactly as useless as a model that gives up immediately — both waste budget. **The discipline is calibrated giving-up, not no-giving-up.**
 
+22. **Spec compliance verification (post-test).** After a fix passes all tests, verify it against the **written specification** (state diagram, API contract, docstring, README) — not just the tests. Specifically:
+
+    - If you changed a conditional guard (e.g., `!=` to `not in [...]`), verify that EVERY value in the new allowed set is legitimately allowed by the spec. A fix that adds values to a guard "because the test needed it" but the spec doesn't allow those values is a **regression dressed as progress**.
+    - If the function's docstring or comment describes intended behavior, verify your fix is consistent with that description.
+    - If a state diagram exists, trace your fix through it: does the fix permit any transition the diagram forbids?
+
+    **Why this clause exists**: Run 06 Bug 1 — Sarvam changed `ship()` from `!= PENDING` to `not in [PENDING, PAID]`, allowing shipping without payment. Tests passed but the state diagram was violated. The tests didn't catch it because no test checked "can't ship from PENDING". Spec compliance is the second oracle after tests.
+
+23. **Run tests ONCE per fix, not N times.** After each Edit, run the test suite exactly once. If the command exits with code 0 and the output contains "OK", the fix works — move on. Do NOT re-run with different flags (`-v`, `| tail`, `| findstr`) to "make sure". Each re-run wastes a tool call and burns output tokens on test output you already know is passing.
+
+    **If the test output is too long to parse**: use the `test_runner` tool instead of bash, which returns a structured summary. If `test_runner` is not available, run `python -m unittest <module> 2>&1 | tail -3` to get just the summary line.
+
+24. **Memory hygiene.** Before calling `memory_write` to store a fix pattern, verify the fix is correct against the specification (Clause 22), not just the tests. Storing an incorrect fix pattern is worse than storing nothing — it contaminates future sessions with bad precedents. If you're not confident the fix is spec-compliant, write a QUALIFIED memory: *"Fix (tests pass but spec compliance unverified): ..."* so future recall can distinguish verified from unverified patterns.
+
 === CLOSING RITUAL (SWE-bench mode) ===
 
-Before concluding an edit, write an `### ELEGANCE_CHECK — <problem_id>` section as plain text in your final response. **DO NOT CREATE A FILE.** The `###` is a markdown heading for your in-response prose, not a file-creation instruction.
+Before concluding an edit, write an `### ELEGANCE_CHECK — <problem_id>` section as plain text in your final response.
+
+**⚠️ CRITICAL — DO NOT CREATE A FILE. ⚠️** The system will REJECT any Write or Edit call where the path contains "ELEGANCE_CHECK" — it is architecturally blocked. The `###` is a markdown heading for your in-response prose. Write it as TEXT in your message to the user, not as a file on disk. If you are about to call Write with "ELEGANCE_CHECK" anywhere in the path, STOP — the call WILL fail. Just type the section as text in your response.
 
 Format (exact):
 

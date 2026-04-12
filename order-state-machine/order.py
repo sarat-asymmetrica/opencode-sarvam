@@ -47,7 +47,7 @@ class Order:
         self._transition_to(OrderState.PAID)
 
     def ship(self) -> None:
-        if self._state not in [OrderState.PENDING, OrderState.PAID]:
+        if self._state != OrderState.PAID:
             raise InvalidTransition(f"Cannot ship from state {self._state.value}")
         self._transition_to(OrderState.SHIPPED)
 

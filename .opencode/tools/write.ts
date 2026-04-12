@@ -58,6 +58,20 @@ This tool will defensively strip a leading slash if you include one (so your wri
       throw new Error("filePath must not be empty")
     }
 
+    // Architectural defense: block ELEGANCE_CHECK file creation.
+    // Sarvam 105B pattern-matches on "### ELEGANCE_CHECK" and tries to
+    // write it as a .md file, despite 10+ lines of prompt prohibition.
+    // This cannot be fixed at the prompt level (Day 1 Run 04, Day 2 Run 06).
+    // The fix is here: reject the write with a pedagogical message.
+    if (p.toLowerCase().includes("elegance_check") || p.toLowerCase().includes("elegance-check")) {
+      throw new Error(
+        "BLOCKED: Do not write ELEGANCE_CHECK as a file. " +
+        "The ELEGANCE_CHECK section belongs in your TEXT RESPONSE to the user, " +
+        "not on disk. Write it as a ### heading in your message, not as a file. " +
+        "This write has been rejected — no file was created."
+      )
+    }
+
     // Defensive normalization: strip leading slashes (both / and \).
     // This is the key fix for the leading-slash habit. We do NOT reject —
     // we recover silently and log what happened, so the model doesn't spin
