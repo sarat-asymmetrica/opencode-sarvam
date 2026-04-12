@@ -3,7 +3,7 @@
 
   "model": "sarvam/sarvam-105b",
   "small_model": "sarvam/sarvam-105b",
-  "default_agent": "codemath-lead",
+  "default_agent": "codemath-swebench",
 
   "provider": {
     "sarvam": {
@@ -21,7 +21,7 @@
           "reasoning": true,
           "limit": {
             "context": 128000,
-            "output": 16384
+            "output": 4096
           }
         },
         "sarvam-105b-32k": {

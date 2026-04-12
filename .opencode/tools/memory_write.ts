@@ -56,6 +56,6 @@ The fact will be stored on disk and survive context-window compaction. Future ca
     state.next_id = state.next_id + 1
     await saveMemory(context.directory, state)
 
-    return `Stored memory #${entry.id}: ${entry.fact}\nTotal memories: ${state.entries.length}`
+    return `memory #${entry.id} stored (${state.entries.length} total)`
   },
 })

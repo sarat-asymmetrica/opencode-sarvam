@@ -59,6 +59,6 @@ Do NOT try to pass multiple todos at once by joining them with newlines or comma
     state.next_id = state.next_id + 1
     await saveState(context.directory, state)
 
-    return `Added todo #${newTodo.id}: ${newTodo.text}\nTotal todos: ${state.todos.length}`
+    return `#${newTodo.id} added (${state.todos.length} total)`
   },
 })

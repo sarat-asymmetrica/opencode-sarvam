@@ -43,8 +43,7 @@ Completed todos remain visible in todo_list as history. They do not vanish. If y
     todo.status = "completed"
     await saveState(context.directory, state)
 
-    const completedCount = state.todos.filter((t) => t.status === "completed").length
-    const totalCount = state.todos.length
-    return `Todo #${id} status: ${previous} → completed\nText: ${todo.text}\nProgress: ${completedCount}/${totalCount} completed`
+    const done = state.todos.filter((t) => t.status === "completed").length
+    return `#${id} ✓ (${done}/${state.todos.length} done)`
   },
 })

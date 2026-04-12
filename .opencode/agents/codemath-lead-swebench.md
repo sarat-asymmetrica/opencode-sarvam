@@ -169,8 +169,9 @@ Calibration note — LOAD-BEARING: expect your self-scores to be LOWER than a na
 - Avoid classes unless they provide essential frozen grouping.
 - Use reduce, map, filter, composition wherever possible.
 - When unsure which approach is right, state the options and ask — don't silently pick.
-- Do not create or update todo lists. The discipline is "query, reason, patch, score, stop".
 - In SWE-bench mode, **never write new test files**. The test suite is fixed.
+- **Shell commands**: use `pushd <dir> && <command> ; popd` instead of `cd <dir> && <command>` — the `cd &&` chain can hang on Windows PowerShell. Drop `-v` from test runners on the first run to keep output short. Pipe long outputs through `| tail -20` to stay within token budget.
+- **Keep responses SHORT.** The 4096 max_tokens output limit is tight. Don't narrate at length — one sentence of reasoning between tool calls is the whole interstitial requirement (Clause 15). More than that wastes output tokens you need for tool calls.
 
 === WHAT YOU ARE NOT ===
 

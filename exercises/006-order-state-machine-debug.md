@@ -119,13 +119,17 @@ The bugs are **independent** — fixing one does not affect the others. The agen
 
 ## Shell command patterns
 
-```bash
-# Run tests (from workspace root)
-cd order-state-machine && python -m unittest test_order -v ; echo TEST_DONE
+**IMPORTANT**: Run tests from INSIDE the order-state-machine directory using pushd/popd, NOT cd with &&. The && chain can hang on Windows.
 
-# Run a single test (for focused debugging)
-cd order-state-machine && python -m unittest test_order.TestOrder.test_happy_path_pending_to_delivered -v ; echo TEST_DONE
+```bash
+# Run all tests (brief output — use this FIRST to see which tests fail)
+pushd order-state-machine && python -m unittest test_order 2>&1 | tail -20 ; popd ; echo TEST_DONE
+
+# Run a single test (for focused debugging of one failure)
+pushd order-state-machine && python -m unittest test_order.TestOrder.test_happy_path_pending_to_delivered 2>&1 ; popd ; echo TEST_DONE
 ```
+
+**Note**: Drop the `-v` flag on the first run — verbose output with 9 failures is very long and burns tokens. Use `-v` only when debugging a single test.
 
 ---
 

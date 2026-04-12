@@ -42,6 +42,6 @@ Calling todo_start on a todo that is already in_progress is a no-op (safe). Call
     todo.status = "in_progress"
     await saveState(context.directory, state)
 
-    return `Todo #${id} status: ${previous} → in_progress\nText: ${todo.text}`
+    return `#${id} → in_progress`
   },
 })
