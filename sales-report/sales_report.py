@@ -32,7 +32,7 @@ def parse_sales_rows(csv_content: str) -> List[Tuple[str, str, str, int]]:
 
         try:
             # Convert to cents (integer) to avoid float precision issues
-            amount = int(float(amount_str) * 100)
+            amount = int(float(amount_str))
         except ValueError as e:
             raise ValueError(f"Invalid amount '{amount_str}' at line {row_num}") from e
 
@@ -58,7 +58,7 @@ def aggregate_by_month_and_category(rows: List[Tuple[str, str, str, int]]) -> Di
         if month not in aggregated:
             aggregated[month] = {}
 
-        aggregated[month][category] = aggregated[month].get(category, 0) + amount
+        aggregated[month][category] = amount
 
     return aggregated
 
@@ -88,6 +88,6 @@ def format_report(aggregated: Dict[str, Dict[str, int]]) -> str:
             # Convert back to dollars with 2 decimal places
             amount_dollars = amount_cents / 100
             formatted_amount = f"{amount_dollars:.2f}"
-            lines.append(f"  {category}: ${formatted_amount}")
+            lines.append(f"  {category}: {formatted_amount}")
 
     return "\n".join(lines)
