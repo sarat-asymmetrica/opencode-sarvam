@@ -44,4 +44,9 @@ dr-classify/*.test
 # See INFRA_STACK.md — these are read-only study targets, NOT our code
 research/
 
+# Session state — durable but not version-controlled
+# (todos, memory, etc. — survives compaction but not across git clones)
+.opencode/state/
+.gitnexus
+
 .gitnexus

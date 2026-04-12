@@ -38,12 +38,24 @@
 
   "agent": {
     "codemath-lead": {
-      "description": "Primary code-oriented agent operating under CodeMathEngine v2 discipline: Boundary + Inevitability + Locality + Cost + Adversarial self-critique. Testing whether the elegance scaffold holds under multi-turn tool use with compaction pressure.",
+      "description": "Primary code-oriented agent operating under CodeMathEngine v2.2.4 discipline: Boundary + Inevitability + Locality + Cost + Adversarial self-critique. Testing whether the elegance scaffold holds under multi-turn tool use with compaction pressure.",
       "mode": "primary",
       "model": "sarvam/sarvam-105b",
       "prompt": ".opencode/agents/codemath-lead.md",
       "temperature": 0.2,
       "steps": 80,
+      "tools": {
+        "todowrite": false,
+        "todoread": false
+      }
+    },
+    "codemath-swebench": {
+      "description": "SWE-bench mode agent: CME v2.3 discipline with oracle query ladder (Memory -> Graph -> File -> Reason), patch format enforcement, minimum viable diff, regression safety via GitNexus impact risk gating, and calibrated give-up. Custom tools: todo_add/start/complete/list/clear for durable task state, memory_write/recall for cross-problem learning. GitNexus MCP provides context/impact/query/cypher as graph tools.",
+      "mode": "primary",
+      "model": "sarvam/sarvam-105b",
+      "prompt": ".opencode/agents/codemath-lead-swebench.md",
+      "temperature": 0.2,
+      "steps": 120,
       "tools": {
         "todowrite": false,
         "todoread": false
