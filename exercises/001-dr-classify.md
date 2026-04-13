@@ -160,7 +160,7 @@ After the session, we measure:
 - **Did the model re-read files before editing after any compaction?** yes / no / no compaction fired
 - **Final file count and line count** — compare against the 4-file / ~80–120 LOC target
 
-Write findings (if substantive) to `C:\Projects\ananta\human_testing\CODEMATH_LAB_FINDINGS_*.md`.
+Write findings (if substantive) to `docs/FINDINGS_YYYY-MM-DD_run_NN.md`.
 
 ---
 

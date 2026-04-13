@@ -36,7 +36,7 @@ The opencode-sarvam workspace is a **mature research prototype** validating that
 
 ## The big vision — asymm-pi integration
 
-**Today's work is the prompt-layer prototype of a much deeper architectural vision**, specified at `C:/Projects/git_versions/asymm_all_math/asymm-pi/ASYMM_PI_SPEC.md` (1,170+ lines, written before today). **asymm-pi** is a fork of Pi (pi-mono by Mario Zechner) that replaces boolean evaluation with S³ quaternion quality tracking, adds time-awareness, implements an oracle-first architecture (compiler/LSP/tests before LLM), and ports 195 days of Lagrangian dynamics and Vyāpti invariant research into the foundation of a coding agent.
+**Today's work is the prompt-layer prototype of a much deeper architectural vision**, specified in the asymm-pi repository (1,170+ lines). **asymm-pi** is a fork of Pi (pi-mono by Mario Zechner) that replaces boolean evaluation with S³ quaternion quality tracking, adds time-awareness, implements an oracle-first architecture (compiler/LSP/tests before LLM), and ports 195 days of Lagrangian dynamics and Vyāpti invariant research into the foundation of a coding agent.
 
 **The correspondence between what we built today and what asymm-pi specifies**:
 

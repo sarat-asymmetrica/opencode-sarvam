@@ -30,7 +30,6 @@ across ANY model, not just the one it was developed with (Sarvam 105B).
 
 ### 1. Reset the exercise
 ```bash
-cd C:/Projects/opencode-sarvam
 bash reset_exercise.sh 009
 ```
 
