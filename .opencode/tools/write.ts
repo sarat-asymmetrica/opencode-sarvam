@@ -99,15 +99,37 @@ This tool will defensively strip a leading slash if you include one (so your wri
       )
     }
 
-    // Create parent directories as needed, then write.
+    // Create parent directories as needed.
     await mkdir(dirname(abs), { recursive: true })
-    await writeFile(abs, args.content, "utf8")
 
-    const bytes = Buffer.byteLength(args.content, "utf8")
-    const notice =
+    // Defensive: detect and reverse HTML entity encoding in non-HTML files.
+    // Some API providers (AIMLAPI) HTML-encode tool call content, turning
+    // `"bytes"` into `&quot;bytes&quot;`. This corrupts Go, Python, etc. source files.
+    // Only apply to non-HTML files (HTML files legitimately contain entities).
+    let content = args.content
+    const ext = rel.split(".").pop()?.toLowerCase() ?? ""
+    const isHtmlFile = ["html", "htm", "xml", "svg"].includes(ext)
+
+    if (!isHtmlFile && content.includes("&quot;")) {
+      // Content was likely HTML-encoded by the API provider. Reverse it.
+      content = content
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&")  // &amp; MUST be last (it's a prefix of the others)
+
+      // Log recovery for observability
+      var entityNotice = " (HTML entities detected and reversed — API provider encoding issue)"
+    }
+
+    await writeFile(abs, content, "utf8")
+
+    const bytes = Buffer.byteLength(content, "utf8")
+    const pathNotice =
       originalPath !== p
         ? ` (normalized from "${originalPath}" — leading slash stripped)`
         : ""
-    return `Wrote ${rel} (${bytes} bytes)${notice}`
+    return `Wrote ${rel} (${bytes} bytes)${pathNotice}${entityNotice ?? ""}`
   },
 })

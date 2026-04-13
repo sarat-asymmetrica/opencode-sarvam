@@ -1,9 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
 
-  "model": "sarvam/sarvam-105b",
-  "small_model": "sarvam/sarvam-105b",
-  "default_agent": "codemath-swebench",
+  "model": "aimlapi/x-ai/grok-4-1-fast-non-reasoning",
+  "small_model": "aimlapi/x-ai/grok-4-1-fast-non-reasoning",
+  "default_agent": "vanilla-grok",
 
   "provider": {
     "sarvam": {
@@ -17,19 +17,53 @@
       },
       "models": {
         "sarvam-105b": {
-          "name": "Sarvam 105B (128K MoE)",
+          "name": "Sarvam 105B (128K MoE, Free)",
           "reasoning": true,
           "limit": {
             "context": 128000,
             "output": 4096
           }
+        }
+      }
+    },
+    "aimlapi": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "AIMLAPI (Multi-Model)",
+      "options": {
+        "baseURL": "https://api.aimlapi.com/v1",
+        "apiKey": "{env:AIMLAPI_KEY}"
+      },
+      "models": {
+        "x-ai/grok-4-1-fast-non-reasoning": {
+          "name": "Grok 4.1 Fast (xAI)",
+          "reasoning": false,
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
         },
-        "sarvam-105b-32k": {
-          "name": "Sarvam 105B 32K (faster fallback)",
+        "x-ai/grok-4-1-fast-reasoning": {
+          "name": "Grok 4.1 Fast Reasoning (xAI)",
           "reasoning": true,
           "limit": {
-            "context": 32000,
+            "context": 131072,
             "output": 16384
+          }
+        },
+        "deepseek/deepseek-r1": {
+          "name": "DeepSeek R1 (671B MoE)",
+          "reasoning": true,
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
+        },
+        "meta-llama/llama-3.3-70b-instruct-turbo": {
+          "name": "Llama 3.3 70B Turbo (Meta)",
+          "reasoning": false,
+          "limit": {
+            "context": 131072,
+            "output": 8192
           }
         }
       }
@@ -37,29 +71,88 @@
   },
 
   "agent": {
-    "codemath-lead": {
-      "description": "Primary code-oriented agent operating under CodeMathEngine v2.2.4 discipline: Boundary + Inevitability + Locality + Cost + Adversarial self-critique. Testing whether the elegance scaffold holds under multi-turn tool use with compaction pressure.",
-      "mode": "primary",
-      "model": "sarvam/sarvam-105b",
-      "prompt": ".opencode/agents/codemath-lead.md",
-      "temperature": 0.2,
-      "steps": 80,
-      "tools": {
-        "todowrite": false,
-        "todoread": false
-      }
-    },
-    "codemath-swebench": {
-      "description": "SWE-bench mode agent: CME v2.3 discipline with oracle query ladder (Memory -> Graph -> File -> Reason), patch format enforcement, minimum viable diff, regression safety via GitNexus impact risk gating, and calibrated give-up. Custom tools: todo_add/start/complete/list/clear for durable task state, memory_write/recall for cross-problem learning. GitNexus MCP provides context/impact/query/cypher as graph tools.",
+    "cme-sarvam": {
+      "description": "CME v2.5 on Sarvam 105B. The baseline — Indian MoE + mathematical scaffold.",
       "mode": "primary",
       "model": "sarvam/sarvam-105b",
       "prompt": ".opencode/agents/codemath-lead-swebench.md",
       "temperature": 0.2,
       "steps": 120,
-      "tools": {
-        "todowrite": false,
-        "todoread": false
-      }
+      "tools": { "todowrite": false, "todoread": false }
+    },
+    "vanilla-sarvam": {
+      "description": "VANILLA Sarvam 105B. No CME, no scaffold. Bare model for A/B comparison.",
+      "mode": "primary",
+      "model": "sarvam/sarvam-105b",
+      "prompt": ".opencode/agents/vanilla.md",
+      "temperature": 0.2,
+      "steps": 120,
+      "tools": { "todowrite": false, "todoread": false }
+    },
+    "cme-grok": {
+      "description": "CME v2.5 on Grok 4.1 Fast. Frontier model + mathematical scaffold.",
+      "mode": "primary",
+      "model": "aimlapi/x-ai/grok-4-1-fast-non-reasoning",
+      "prompt": ".opencode/agents/codemath-lead-swebench.md",
+      "temperature": 0.2,
+      "steps": 120,
+      "tools": { "todowrite": false, "todoread": false }
+    },
+    "vanilla-grok": {
+      "description": "VANILLA Grok 4.1 Fast. No CME, no scaffold. Bare model for A/B comparison.",
+      "mode": "primary",
+      "model": "aimlapi/x-ai/grok-4-1-fast-non-reasoning",
+      "prompt": ".opencode/agents/vanilla.md",
+      "temperature": 0.2,
+      "steps": 120,
+      "tools": { "todowrite": false, "todoread": false }
+    },
+    "cme-deepseek": {
+      "description": "CME v2.5 on DeepSeek R1. Open-weight reasoning + mathematical scaffold.",
+      "mode": "primary",
+      "model": "aimlapi/deepseek/deepseek-r1",
+      "prompt": ".opencode/agents/codemath-lead-swebench.md",
+      "temperature": 0.2,
+      "steps": 120,
+      "tools": { "todowrite": false, "todoread": false }
+    },
+    "vanilla-deepseek": {
+      "description": "VANILLA DeepSeek R1. No CME, no scaffold.",
+      "mode": "primary",
+      "model": "aimlapi/deepseek/deepseek-r1",
+      "prompt": ".opencode/agents/vanilla.md",
+      "temperature": 0.2,
+      "steps": 120,
+      "tools": { "todowrite": false, "todoread": false }
+    },
+    "cme-llama": {
+      "description": "CME v2.5 on Llama 3.3 70B. Meta open-weight + mathematical scaffold.",
+      "mode": "primary",
+      "model": "aimlapi/meta-llama/llama-3.3-70b-instruct-turbo",
+      "prompt": ".opencode/agents/codemath-lead-swebench.md",
+      "temperature": 0.2,
+      "steps": 120,
+      "tools": { "todowrite": false, "todoread": false }
+    },
+    "vanilla-llama": {
+      "description": "VANILLA Llama 3.3 70B. No CME, no scaffold.",
+      "mode": "primary",
+      "model": "aimlapi/meta-llama/llama-3.3-70b-instruct-turbo",
+      "prompt": ".opencode/agents/vanilla.md",
+      "temperature": 0.2,
+      "steps": 120,
+      "tools": { "todowrite": false, "todoread": false }
+    }
+  },
+
+  "command": {
+    "ab-test": {
+      "description": "Run an exercise with a specific agent for A/B comparison",
+      "template": ".opencode/commands/ab-test.md"
+    },
+    "test": {
+      "description": "Run Python or Go tests",
+      "template": ".opencode/commands/test.md"
     }
   },
 
@@ -72,9 +165,10 @@
       "ls *": "allow",
       "cat *": "allow",
       "wc -l *": "allow",
-      "node --check *": "allow",
+      "python -m unittest *": "allow",
       "python -c *": "allow",
-      "python3 -c *": "allow"
+      "python3 -c *": "allow",
+      "go test *": "allow"
     },
     "edit": "allow",
     "read": "allow",
@@ -89,7 +183,7 @@
   },
 
   "watcher": {
-    "ignore": ["node_modules", ".git", "*.log", ".opencode/logs"]
+    "ignore": ["node_modules", ".git", "*.log", ".opencode/logs", "frontend"]
   },
 
   "instructions": ["CLAUDE.md"]
